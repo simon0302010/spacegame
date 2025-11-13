@@ -1,19 +1,21 @@
 use bevy::color::palettes::css::GRAY;
 use bevy::dev_tools::fps_overlay::FpsOverlayPlugin;
+use bevy::ecs::event::EventReader;
 use bevy::render::camera::RenderTarget;
-use bevy::render::render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages};
+use bevy::render::render_resource::{
+    Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+};
 use bevy::window::WindowResized;
 use bevy::{prelude::*, render::view::RenderLayers};
-use bevy::ecs::event::EventReader;
-use bevy_rapier2d::prelude::*;
 use bevy_embedded_assets::{EmbeddedAssetPlugin, PluginMode};
 use bevy_kira_audio::AudioPlugin;
+use bevy_rapier2d::prelude::*;
 
 /// In-game resolution width.
-const RES_WIDTH: u32 = 160;
+const RES_WIDTH: u32 = 320;
 
 /// In-game resolution height.
-const RES_HEIGHT: u32 = 90;
+const RES_HEIGHT: u32 = 180;
 
 /// Default render layers for pixel-perfect rendering.
 /// You can skip adding this component, as this is the default.
@@ -41,9 +43,9 @@ fn main() {
         .add_plugins(AudioPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugins(FpsOverlayPlugin::default())
-        .add_plugins(RapierDebugRenderPlugin::default())
-        .add_systems(Startup, (setup_camera, setup_sprite, setup_mesh))
-        .add_systems(Update, (rotate, fit_canvas))
+        // .add_plugins(RapierDebugRenderPlugin::default())
+        .add_systems(Startup, (setup_camera, setup_player))
+        .add_systems(Update, (control_player, fit_canvas))
         .run();
 }
 
@@ -61,27 +63,21 @@ struct InGameCamera;
 struct OuterCamera;
 
 #[derive(Component)]
-struct Rotate;
+struct Player;
 
-fn setup_sprite(mut commands: Commands, asset_server: Res<AssetServer>) {
+fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Sprite::from_image(asset_server.load("ship.png")),
-        Transform::from_xyz(-20.0, 0.0, 0.0),
-        Rotate,
-        PIXEL_PERFECT_LAYERS
-    ));
-}
-
-fn setup_mesh(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-) {
-    commands.spawn((
-        Mesh2d(meshes.add(Capsule2d::default())),
-        MeshMaterial2d(materials.add(Color::BLACK)),
-        Transform::from_xyz(25., 0., 2.).with_scale(Vec3::splat(32.)),
-        Rotate,
+        Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(1.0 / 40.0)),
+        RigidBody::Dynamic,
+        GravityScale(0.0),
+        Velocity::default(),
+        Damping {
+            linear_damping: 2.0,
+            angular_damping: 3.0,
+        },
+        Collider::ball(20.0),
+        Player,
         PIXEL_PERFECT_LAYERS,
     ));
 }
@@ -138,11 +134,31 @@ fn setup_camera(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     commands.spawn((Camera2d, Msaa::Off, OuterCamera, HIGH_RES_LAYERS));
 }
 
-/// Rotates entities to demonstrate grid snapping.
-fn rotate(time: Res<Time>, mut transforms: Query<&mut Transform, With<Rotate>>) {
-    for mut transform in &mut transforms {
-        let dt = time.delta_secs();
-        transform.rotate_z(dt);
+const TURN_SPEED: f32 = 0.5;
+const MAX_TURN_SPEED: f32 = 5.0;
+const THRUST: f32 = 600.0;
+
+/// Controls player
+fn control_player(
+    time: Res<Time>,
+    mut velocity: Query<&mut Velocity, With<Player>>,
+    mut transforms: Query<&mut Transform, With<Player>>,
+    kb_input: Res<ButtonInput<KeyCode>>,
+) {
+    if let Ok(mut vel) = velocity.single_mut() {
+        if let Ok(transform) = transforms.single_mut() {
+            if kb_input.pressed(KeyCode::ArrowRight) || kb_input.pressed(KeyCode::KeyD) {
+                vel.angvel = (vel.angvel - TURN_SPEED).max(-MAX_TURN_SPEED);
+            } else if kb_input.pressed(KeyCode::ArrowLeft) || kb_input.pressed(KeyCode::KeyA) {
+                vel.angvel = (vel.angvel + TURN_SPEED).min(MAX_TURN_SPEED);
+            }
+
+            // Forward thrust
+            if kb_input.pressed(KeyCode::ArrowUp) || kb_input.pressed(KeyCode::KeyW) {
+                let direction = transform.up();
+                vel.linvel += direction.xy() * THRUST * time.delta_secs();
+            }
+        }
     }
 }
 
