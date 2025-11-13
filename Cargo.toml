@@ -4,3 +4,14 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
+bevy = { version = "0.16.*", features = [ "bevy_dev_tools", "mp3" ]}
+bevy_rapier2d =  { version = "0.31.*", features = [ "simd-stable", "debug-render-2d" ] }
+bevy_asset = "0.16.*"
+bevy_embedded_assets = "0.13.*"
+bevy_kira_audio = "0.23.*"
+
+[profile.release]
+codegen-units = 1
+
+[profile.dev.package.bevy_rapier2d]
+opt-level = 3
