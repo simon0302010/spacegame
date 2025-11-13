@@ -45,7 +45,7 @@ fn main() {
         .add_plugins(FpsOverlayPlugin::default())
         // .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, (setup_camera, setup_player))
-        .add_systems(Update, (control_player, fit_canvas))
+        .add_systems(Update, (control_player, fit_canvas, keep_player))
         .run();
 }
 
@@ -174,5 +174,24 @@ fn fit_canvas(
         let h_scale = window_resized.width / RES_WIDTH as f32;
         let v_scale = window_resized.height / RES_HEIGHT as f32;
         projection.scale = 1. / h_scale.min(v_scale).round();
+    }
+}
+
+fn keep_player(
+    mut transform: Query<&mut Transform, With<Player>>
+) {
+    if let Ok(mut trans) = transform.single_mut() {
+        if trans.translation.x > (RES_WIDTH / 2) as f32 {
+            trans.translation.x = -((RES_WIDTH as f32) / 2.0);
+        }
+        if trans.translation.x < -((RES_WIDTH as f32) / 2.0) {
+            trans.translation.x = (RES_WIDTH / 2) as f32;
+        }
+        if trans.translation.y > (RES_HEIGHT / 2) as f32 {
+            trans.translation.y = -((RES_HEIGHT as f32) / 2.0);
+        }
+        if trans.translation.y < -((RES_HEIGHT as f32) / 2.0) {
+            trans.translation.y = (RES_HEIGHT / 2) as f32;
+        }
     }
 }
