@@ -56,7 +56,7 @@ fn main() {
         })
         // .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, (setup_background, setup_camera, setup_player))
-        .add_systems(Update, (control_player, fit_canvas, keep_player, spawn_asteroid))
+        .add_systems(Update, (control_player, fit_canvas, keep_player, spawn_asteroid, shoot))
         .run();
 }
 
@@ -64,17 +64,6 @@ fn main() {
 /// Canvas itself is rendered to the high-resolution world.
 #[derive(Component)]
 struct Canvas;
-
-/// Camera that renders the pixel-perfect world to the [`Canvas`].
-#[derive(Component)]
-struct InGameCamera;
-
-/// Camera that renders the [`Canvas`] (and other graphics on [`HIGH_RES_LAYERS`]) to the screen.
-#[derive(Component)]
-struct OuterCamera;
-
-#[derive(Component)]
-struct Player;
 
 fn setup_background(
     asset_server: Res<AssetServer>,

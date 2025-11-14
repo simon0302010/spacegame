@@ -1,6 +1,14 @@
 use bevy::{prelude::*, render::{camera::RenderTarget, render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages}}};
 
-use crate::{Canvas, HIGH_RES_LAYERS, InGameCamera, OuterCamera, RES_HEIGHT, RES_WIDTH};
+use crate::{Canvas, HIGH_RES_LAYERS, RES_HEIGHT, RES_WIDTH};
+
+/// Camera that renders the pixel-perfect world to the [`Canvas`].
+#[derive(Component)]
+pub struct InGameCamera;
+
+/// Camera that renders the [`Canvas`] (and other graphics on [`HIGH_RES_LAYERS`]) to the screen.
+#[derive(Component)]
+pub struct OuterCamera;
 
 pub fn setup_camera(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let canvas_size = Extent3d {
