@@ -1,6 +1,6 @@
 use bevy::{prelude::*, render::{camera::RenderTarget, render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages}}};
 
-use crate::{Canvas, HIGH_RES_LAYERS, InGameCamera, OuterCamera, PIXEL_PERFECT_LAYERS, RES_HEIGHT, RES_WIDTH};
+use crate::{Canvas, HIGH_RES_LAYERS, InGameCamera, OuterCamera, RES_HEIGHT, RES_WIDTH};
 
 pub fn setup_camera(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
     let canvas_size = Extent3d {
@@ -43,7 +43,6 @@ pub fn setup_camera(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
         },
         Msaa::Off,
         InGameCamera,
-        PIXEL_PERFECT_LAYERS,
     ));
 
     // Spawn the canvas

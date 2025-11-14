@@ -16,15 +16,14 @@ use player::*;
 mod camera;
 use camera::*;
 
+mod asteroids;
+use asteroids::*;
+
 /// In-game resolution width.
 const RES_WIDTH: u32 = 320;
 
 /// In-game resolution height.
 const RES_HEIGHT: u32 = 180;
-
-/// Default render layers for pixel-perfect rendering.
-/// You can skip adding this component, as this is the default.
-const PIXEL_PERFECT_LAYERS: RenderLayers = RenderLayers::layer(0);
 
 /// Render layers for high-resolution rendering.
 const HIGH_RES_LAYERS: RenderLayers = RenderLayers::layer(1);
@@ -57,7 +56,7 @@ fn main() {
         })
         // .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, (setup_background, setup_camera, setup_player))
-        .add_systems(Update, (control_player, fit_canvas, keep_player))
+        .add_systems(Update, (control_player, fit_canvas, keep_player, spawn_asteroid))
         .run();
 }
 
@@ -84,7 +83,6 @@ fn setup_background(
     commands.spawn((
         Sprite::from_image(asset_server.load("bg.png")),
         Transform::from_xyz(0.0, 0.0, -10.0),
-        PIXEL_PERFECT_LAYERS,
     ));
 }
 

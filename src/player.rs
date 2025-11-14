@@ -1,12 +1,12 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{PIXEL_PERFECT_LAYERS, Player, RES_HEIGHT, RES_WIDTH};
+use crate::{Player, RES_HEIGHT, RES_WIDTH};
 
 pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Sprite::from_image(asset_server.load("ship.png")),
-        Transform::from_xyz(0.0, 0.0, 10.0).with_scale(Vec3::splat(1.0 / 40.0)),
+        Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(1.0 / 40.0)),
         RigidBody::Dynamic,
         GravityScale(0.0),
         Velocity::default(),
@@ -16,7 +16,6 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Collider::ball(20.0),
         Player,
-        PIXEL_PERFECT_LAYERS,
     ));
 }
 
