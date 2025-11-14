@@ -1,4 +1,6 @@
-use bevy::color::palettes::css::GRAY;
+use std::thread::sleep;
+use std::time::Duration;
+
 use bevy::dev_tools::fps_overlay::FpsOverlayPlugin;
 use bevy::ecs::event::EventReader;
 use bevy::render::camera::RenderTarget;
@@ -44,7 +46,7 @@ fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugins(FpsOverlayPlugin::default())
         // .add_plugins(RapierDebugRenderPlugin::default())
-        .add_systems(Startup, (setup_camera, setup_player))
+        .add_systems(Startup, (setup_background, setup_camera, setup_player))
         .add_systems(Update, (control_player, fit_canvas, keep_player))
         .run();
 }
@@ -65,10 +67,34 @@ struct OuterCamera;
 #[derive(Component)]
 struct Player;
 
+fn setup_background(
+    asset_server: Res<AssetServer>,
+    mut commands: Commands
+) {
+    let bg_id = commands.spawn((
+        ImageNode {
+            image: asset_server.load("bg.png"),
+            ..default()
+        },
+        Node {
+            position_type: PositionType::Absolute,
+            width: Val::Percent(100.0),
+            height: Val::Percent(100.0),
+            justify_content: JustifyContent::Center,
+            align_items: AlignItems::Center,
+            ..default()
+        },
+        PIXEL_PERFECT_LAYERS
+    )).id();
+
+    sleep(Duration::from_secs(1));
+    commands.entity(bg_id).insert(ZIndex(-1));
+}
+
 fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
         Sprite::from_image(asset_server.load("ship.png")),
-        Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(1.0 / 40.0)),
+        Transform::from_xyz(0.0, 0.0, 10.0).with_scale(Vec3::splat(1.0 / 40.0)),
         RigidBody::Dynamic,
         GravityScale(0.0),
         Velocity::default(),
@@ -118,7 +144,7 @@ fn setup_camera(mut commands: Commands, mut images: ResMut<Assets<Image>>) {
             // Render before the "main pass" camera
             order: -1,
             target: RenderTarget::Image(image_handle.clone().into()),
-            clear_color: ClearColorConfig::Custom(GRAY.into()),
+            clear_color: ClearColorConfig::Custom(Color::srgb(0.0, 0.0, 0.0)),
             ..default()
         },
         Msaa::Off,
