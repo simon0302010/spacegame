@@ -1,5 +1,4 @@
-use std::thread::sleep;
-use std::time::Duration;
+// ...existing code...
 
 use bevy::dev_tools::fps_overlay::FpsOverlayPlugin;
 use bevy::ecs::event::EventReader;
@@ -71,24 +70,11 @@ fn setup_background(
     asset_server: Res<AssetServer>,
     mut commands: Commands
 ) {
-    let bg_id = commands.spawn((
-        ImageNode {
-            image: asset_server.load("bg.png"),
-            ..default()
-        },
-        Node {
-            position_type: PositionType::Absolute,
-            width: Val::Percent(100.0),
-            height: Val::Percent(100.0),
-            justify_content: JustifyContent::Center,
-            align_items: AlignItems::Center,
-            ..default()
-        },
-        PIXEL_PERFECT_LAYERS
-    )).id();
-
-    sleep(Duration::from_secs(1));
-    commands.entity(bg_id).insert(ZIndex(-1));
+    commands.spawn((
+        Sprite::from_image(asset_server.load("bg.png")),
+        Transform::from_xyz(0.0, 0.0, -10.0),
+        PIXEL_PERFECT_LAYERS,
+    ));
 }
 
 fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
