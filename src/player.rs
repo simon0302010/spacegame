@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{RES_HEIGHT, RES_WIDTH};
+use crate::{RES_HEIGHT, RES_WIDTH, get_high_res_size};
 
 #[derive(Component)]
 pub struct Player;
@@ -9,7 +9,7 @@ pub struct Player;
 #[derive(Component)]
 pub struct Projectile;
 
-pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
+pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, window: Single<&Window>) {
     commands.spawn((
         Sprite::from_image(asset_server.load("ship.png")),
         Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(1.0 / 40.0)),
@@ -20,8 +20,10 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
             linear_damping: 2.0,
             angular_damping: 3.0,
         },
-        Collider::ball(20.0),
+        Collider::ball(9.0 * 10.0),//40.0),
         Player,
+        ActiveEvents::COLLISION_EVENTS,
+        Ccd::enabled(),
     ));
 }
 
@@ -36,19 +38,19 @@ pub fn control_player(
     mut transforms: Query<&mut Transform, With<Player>>,
     kb_input: Res<ButtonInput<KeyCode>>,
 ) {
-    if let Ok(mut vel) = velocity.single_mut() {
-        if let Ok(transform) = transforms.single_mut() {
-            if kb_input.pressed(KeyCode::ArrowRight) || kb_input.pressed(KeyCode::KeyD) {
-                vel.angvel = (vel.angvel - TURN_SPEED).max(-MAX_TURN_SPEED);
-            } else if kb_input.pressed(KeyCode::ArrowLeft) || kb_input.pressed(KeyCode::KeyA) {
-                vel.angvel = (vel.angvel + TURN_SPEED).min(MAX_TURN_SPEED);
-            }
+    if let Ok(mut vel) = velocity.single_mut()
+        && let Ok(transform) = transforms.single_mut()
+    {
+        if kb_input.pressed(KeyCode::ArrowRight) || kb_input.pressed(KeyCode::KeyD) {
+            vel.angvel = (vel.angvel - TURN_SPEED).max(-MAX_TURN_SPEED);
+        } else if kb_input.pressed(KeyCode::ArrowLeft) || kb_input.pressed(KeyCode::KeyA) {
+            vel.angvel = (vel.angvel + TURN_SPEED).min(MAX_TURN_SPEED);
+        }
 
-            // Forward thrust
-            if kb_input.pressed(KeyCode::ArrowUp) || kb_input.pressed(KeyCode::KeyW) {
-                let direction = transform.up();
-                vel.linvel += direction.xy() * THRUST * time.delta_secs();
-            }
+        // Forward thrust
+        if kb_input.pressed(KeyCode::ArrowUp) || kb_input.pressed(KeyCode::KeyW) {
+            let direction = transform.up();
+            vel.linvel += direction.xy() * THRUST * time.delta_secs();
         }
     }
 }
@@ -98,6 +100,7 @@ pub fn shoot(
     asset_server: Res<AssetServer>,
     kb_input: Res<ButtonInput<KeyCode>>,
     player_transform: Query<(&Transform, &Velocity), With<Player>>,
+    window: Single<&Window>
 ) {
     if kb_input.just_pressed(KeyCode::Space)
         && let Ok((trans, vel)) = player_transform.single()
@@ -113,6 +116,10 @@ pub fn shoot(
             Velocity::linear(Vec2::new(rotated.x, rotated.y) * SHOOT_STRENGTH + vel.linvel),
             Sleeping::disabled(),
             Projectile,
+            GravityScale(0.0),
+            Collider::ball(2.0 / get_high_res_size(&window)),
+            ActiveEvents::COLLISION_EVENTS,
+            Ccd::enabled(),
         ));
     }
 }

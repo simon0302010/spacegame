@@ -2,31 +2,81 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
 
-use crate::{RES_HEIGHT, RES_WIDTH};
+use crate::{RES_HEIGHT, RES_WIDTH, get_high_res_size};
 
-pub fn spawn_asteroid(mut commands: Commands, asset_server: Res<AssetServer>) {
+#[derive(Component)]
+pub struct SpawnTimer {
+    pub timer: Timer,
+}
+
+#[derive(Component)]
+pub struct Asteroid;
+
+pub fn init_timer(mut commands: Commands) {
+    commands.spawn(SpawnTimer {
+        timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+    });
+}
+
+pub fn manage_asteroids(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    mut timer_query: Query<&mut SpawnTimer>,
+    time: Res<Time>,
+    transform: Query<&Transform, With<Asteroid>>,
+    entity: Query<Entity, With<Asteroid>>,
+    window: Single<&Window>
+) {
+    // despawn logic
+    for (trans, ent) in transform.iter().zip(entity.iter()) {
+        if trans.translation.x > (RES_WIDTH) as f32 {
+            commands.entity(ent).despawn();
+        }
+        if trans.translation.x < -(RES_WIDTH as f32) {
+            commands.entity(ent).despawn();
+        }
+        if trans.translation.y > (RES_HEIGHT) as f32 {
+            commands.entity(ent).despawn();
+        }
+        if trans.translation.y < -(RES_HEIGHT as f32) {
+            commands.entity(ent).despawn();
+        }
+    }
+
+    // get spawn timer
+    let mut spawn_timer = match timer_query.single_mut() {
+        Ok(tim) => tim,
+        Err(e) => {
+            warn!("failed to get asteroid spawn timer: {}.", e);
+            return;
+        }
+    };
+    spawn_timer.timer.tick(time.delta());
+
     let mut rng = rand::rng();
 
-    if !rng.random_bool(1.0 / 100.0) {
+    if !spawn_timer.timer.just_finished() || rng.random_bool(1.0 / 4.0) {
         return;
     }
 
     let pos_x = rng.random_range(-(RES_WIDTH as i32 / 2)..(RES_WIDTH as i32 / 2));
     let pos_y = rng.random_range(-(RES_HEIGHT as i32 / 2)..(RES_HEIGHT as i32 / 2));
-    let scale = rng.random_range(60..100);
+    let scale = rng.random_range(0.3..0.6);
     let linvel_x = rng.random_range(-15..15);
     let linvel_y = rng.random_range(-15..15);
+    let angvel = rng.random_range(-2..2);
 
+    // spawningggg
     commands.spawn((
         Sprite::from_image(asset_server.load("asteroids/1.png")),
         Transform::from_xyz(pos_x as f32, pos_y as f32, 0.0)
-            .with_scale(Vec3::splat(1.0 / scale as f32)),
+            .with_scale(Vec3::splat(scale / 40.0)),
         Velocity {
             linvel: Vec2 {
                 x: linvel_x as f32,
                 y: linvel_y as f32,
             },
-            ..default()
+            angvel: angvel as f32,
         },
         GravityScale(0.0),
         Damping {
@@ -35,6 +85,10 @@ pub fn spawn_asteroid(mut commands: Commands, asset_server: Res<AssetServer>) {
         },
         Sleeping::disabled(),
         RigidBody::Dynamic,
-        Collider::ball(20.0),
+        // Collider::ball(20.0 * scale * get_high_res_size(&window)),
+        Collider::ball(20.0 * scale / 40.0),
+        ActiveEvents::COLLISION_EVENTS,
+        Ccd::enabled(),
+        Asteroid,
     ));
 }

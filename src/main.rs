@@ -19,6 +19,9 @@ use camera::*;
 mod asteroids;
 use asteroids::*;
 
+mod collisions;
+use collisions::*;
+
 /// In-game resolution width.
 const RES_WIDTH: u32 = 320;
 
@@ -55,10 +58,17 @@ fn main() {
                 refresh_interval: Duration::from_millis(50),
                 ..default()
             },
+        })
+        .add_plugins(RapierDebugRenderPlugin {
+            default_collider_debug: ColliderDebug::AlwaysRender,
+            enabled: true,
+            mode: DebugRenderMode::all(),
             ..default()
         })
-        // .add_plugins(RapierDebugRenderPlugin::default())
-        .add_systems(Startup, (setup_background, setup_camera, setup_player))
+        .add_systems(
+            Startup,
+            (setup_background, setup_camera, setup_player, init_timer),
+        )
         .add_systems(
             Update,
             (
@@ -66,8 +76,9 @@ fn main() {
                 fit_canvas,
                 keep_player,
                 manage_projectiles,
-                spawn_asteroid,
+                manage_asteroids,
                 shoot,
+                collision_system,
             ),
         )
         .run();
@@ -98,4 +109,10 @@ fn fit_canvas(
         let v_scale = window_resized.height / RES_HEIGHT as f32;
         projection.scale = 1. / h_scale.min(v_scale).round();
     }
+}
+
+fn get_high_res_size(window: &Window) -> f32 {
+    let h_scale = window.width() / RES_WIDTH as f32;
+    let v_scale = window.height() / RES_HEIGHT  as f32;
+    h_scale.min(v_scale).round()
 }
