@@ -4,10 +4,7 @@ use rand::Rng;
 
 use crate::{RES_HEIGHT, RES_WIDTH};
 
-pub fn spawn_asteroid(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>
-) {
+pub fn spawn_asteroid(mut commands: Commands, asset_server: Res<AssetServer>) {
     let mut rng = rand::rng();
 
     if !rng.random_bool(1.0 / 100.0) {
@@ -22,9 +19,13 @@ pub fn spawn_asteroid(
 
     commands.spawn((
         Sprite::from_image(asset_server.load("asteroids/1.png")),
-        Transform::from_xyz(pos_x as f32, pos_y as f32, 0.0).with_scale(Vec3::splat(1.0 / scale as f32)),
+        Transform::from_xyz(pos_x as f32, pos_y as f32, 0.0)
+            .with_scale(Vec3::splat(1.0 / scale as f32)),
         Velocity {
-            linvel: Vec2 { x: linvel_x as f32, y: linvel_y as f32 },
+            linvel: Vec2 {
+                x: linvel_x as f32,
+                y: linvel_y as f32,
+            },
             ..default()
         },
         GravityScale(0.0),

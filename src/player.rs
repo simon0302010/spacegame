@@ -1,10 +1,13 @@
-use bevy::{prelude::*};
+use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
 use crate::{RES_HEIGHT, RES_WIDTH};
 
 #[derive(Component)]
 pub struct Player;
+
+#[derive(Component)]
+pub struct Projectile;
 
 pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>) {
     commands.spawn((
@@ -50,9 +53,7 @@ pub fn control_player(
     }
 }
 
-pub fn keep_player(
-    mut transform: Query<&mut Transform, With<Player>>
-) {
+pub fn keep_player(mut transform: Query<&mut Transform, With<Player>>) {
     if let Ok(mut trans) = transform.single_mut() {
         if trans.translation.x > (RES_WIDTH / 2) as f32 {
             trans.translation.x = -((RES_WIDTH as f32) / 2.0);
@@ -69,22 +70,49 @@ pub fn keep_player(
     }
 }
 
+pub fn manage_projectiles(
+    mut commands: Commands,
+    transform: Query<&Transform, With<Projectile>>,
+    entity: Query<Entity, With<Projectile>>,
+) {
+    for (trans, ent) in transform.iter().zip(entity.iter()) {
+        if trans.translation.x > (RES_WIDTH / 2) as f32 {
+            commands.entity(ent).despawn();
+        }
+        if trans.translation.x < -((RES_WIDTH as f32) / 2.0) {
+            commands.entity(ent).despawn();
+        }
+        if trans.translation.y > (RES_HEIGHT / 2) as f32 {
+            commands.entity(ent).despawn();
+        }
+        if trans.translation.y < -((RES_HEIGHT as f32) / 2.0) {
+            commands.entity(ent).despawn();
+        }
+    }
+}
+
 const SHOOT_STRENGTH: f32 = 200.0;
 
 pub fn shoot(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     kb_input: Res<ButtonInput<KeyCode>>,
-    player_transform: Query<(&Transform, &Velocity), With<Player>>
+    player_transform: Query<(&Transform, &Velocity), With<Player>>,
 ) {
-    if kb_input.just_pressed(KeyCode::Space) && let Ok((trans, vel)) = player_transform.single() {
-        let rotated: Vec3 = (trans.rotation * Quat::from_rotation_z(std::f32::consts::FRAC_PI_2)) * Vec3::X;
+    if kb_input.just_pressed(KeyCode::Space)
+        && let Ok((trans, vel)) = player_transform.single()
+    {
+        let rotated: Vec3 =
+            (trans.rotation * Quat::from_rotation_z(std::f32::consts::FRAC_PI_2)) * Vec3::X;
         commands.spawn((
             Sprite::from_image(asset_server.load("proj.png")),
-            Transform::from_xyz(trans.translation.x, trans.translation.y, 0.0).with_rotation(trans.rotation).with_scale(Vec3::splat(1.0 / 5.0)),
+            Transform::from_xyz(trans.translation.x, trans.translation.y, 0.0)
+                .with_rotation(trans.rotation)
+                .with_scale(Vec3::splat(1.0 / 5.0)),
             RigidBody::Dynamic,
             Velocity::linear(Vec2::new(rotated.x, rotated.y) * SHOOT_STRENGTH + vel.linvel),
-            Sleeping::disabled()
+            Sleeping::disabled(),
+            Projectile,
         ));
     }
 }

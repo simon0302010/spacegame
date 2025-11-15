@@ -1,4 +1,12 @@
-use bevy::{prelude::*, render::{camera::RenderTarget, render_resource::{Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages}}};
+use bevy::{
+    prelude::*,
+    render::{
+        camera::RenderTarget,
+        render_resource::{
+            Extent3d, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages,
+        },
+    },
+};
 
 use crate::{Canvas, HIGH_RES_LAYERS, RES_HEIGHT, RES_WIDTH};
 

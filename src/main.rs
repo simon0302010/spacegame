@@ -42,13 +42,16 @@ fn main() {
                     }),
                     ..default()
                 })
-                .set(ImagePlugin::default_nearest())
+                .set(ImagePlugin::default_nearest()),
         )
         .add_plugins(AudioPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::pixels_per_meter(100.0))
         .add_plugins(FpsOverlayPlugin {
             config: FpsOverlayConfig {
-                text_config: TextFont { font_size: 20.0, ..default() },
+                text_config: TextFont {
+                    font_size: 20.0,
+                    ..default()
+                },
                 refresh_interval: Duration::from_millis(50),
                 ..default()
             },
@@ -56,7 +59,17 @@ fn main() {
         })
         // .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, (setup_background, setup_camera, setup_player))
-        .add_systems(Update, (control_player, fit_canvas, keep_player, spawn_asteroid, shoot))
+        .add_systems(
+            Update,
+            (
+                control_player,
+                fit_canvas,
+                keep_player,
+                manage_projectiles,
+                spawn_asteroid,
+                shoot,
+            ),
+        )
         .run();
 }
 
@@ -65,10 +78,7 @@ fn main() {
 #[derive(Component)]
 struct Canvas;
 
-fn setup_background(
-    asset_server: Res<AssetServer>,
-    mut commands: Commands
-) {
+fn setup_background(asset_server: Res<AssetServer>, mut commands: Commands) {
     commands.spawn((
         Sprite::from_image(asset_server.load("bg.png")),
         Transform::from_xyz(0.0, 0.0, -10.0),
