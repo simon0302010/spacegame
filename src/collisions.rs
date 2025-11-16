@@ -1,7 +1,7 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{asteroids::Asteroid, player::Player, shooting::Projectile};
+use crate::{asteroids::Asteroid, player::Player, shooting::Projectile, ui::GameState};
 
 pub const GROUP_PLAYER: u32 = 0b0001;
 pub const GROUP_PROJECTILE: u32 = 0b0010;
@@ -20,7 +20,8 @@ pub fn collision_system(
     q_projectile: Query<Entity, With<Projectile>>,
     q_asteroid: Query<Entity, With<Asteroid>>,
     q2_asteroid: Query<&Asteroid>,
-    mut stats: ResMut<Stats>
+    mut stats: ResMut<Stats>,
+    mut next_state: ResMut<NextState<GameState>>,
 ) {
     for event in collision_events.read() {
         if let CollisionEvent::Started(entity1, entity2, _) = event {
@@ -48,6 +49,9 @@ pub fn collision_system(
             if (is_player1 && is_asteroid2) || (is_player2 && is_asteroid1) {
                 stats.health -= 1.0;
                 info!("Player hit asteroid!");
+                if stats.health <= 0.0 {
+                    next_state.set(GameState::GameOver);
+                }
             }
         }
     }

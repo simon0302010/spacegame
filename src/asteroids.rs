@@ -99,6 +99,7 @@ pub fn manage_asteroids(
         Sleeping::disabled(),
         RigidBody::Dynamic,
         Collider::ball(500.0 * scale * get_high_res_size(&window)),
+        // Collider::ball(0.5 * scale),
         ActiveEvents::COLLISION_EVENTS,
         Ccd::enabled(),
         Asteroid { scale, score },

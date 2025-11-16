@@ -66,6 +66,7 @@ fn main() {
             },
         })
         .insert_resource(ProjectilesData { last_shoot: 0.0 })
+        .insert_state(GameState::InGame)
         .insert_resource(Stats {
             score: 0,
             health: 3.0,
@@ -89,16 +90,19 @@ fn main() {
         .add_systems(
             Update,
             (
-                control_player,
+                control_player.run_if(in_state(GameState::InGame)),
                 fit_canvas,
                 keep_player,
                 manage_projectiles,
-                manage_asteroids,
-                shoot,
-                collision_system,
-                update_stats,
+                manage_asteroids.run_if(in_state(GameState::InGame)),
+                shoot.run_if(in_state(GameState::InGame)),
+                collision_system.run_if(in_state(GameState::InGame)),
+                update_stats.run_if(in_state(GameState::InGame)),
+                handle_game_over_input.run_if(in_state(GameState::GameOver)),
             ),
         )
+        .add_systems(OnEnter(GameState::GameOver), spawn_game_over_ui)
+        .add_systems(OnExit(GameState::GameOver), despawn_game_over_ui)
         .run();
 }
 
