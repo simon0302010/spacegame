@@ -25,6 +25,9 @@ use collisions::*;
 mod shooting;
 use shooting::*;
 
+mod ui;
+use ui::*;
+
 /// In-game resolution width.
 const RES_WIDTH: u32 = 320;
 
@@ -62,8 +65,10 @@ fn main() {
                 ..default()
             },
         })
-        .insert_resource(ProjectilesData {
-            last_shoot: 0.0
+        .insert_resource(ProjectilesData { last_shoot: 0.0 })
+        .insert_resource(Stats {
+            score: 0,
+            health: 3.0,
         })
         .add_plugins(RapierDebugRenderPlugin {
             default_collider_debug: ColliderDebug::AlwaysRender,
@@ -73,7 +78,13 @@ fn main() {
         })
         .add_systems(
             Startup,
-            (setup_background, setup_camera, setup_player, init_timer),
+            (
+                setup_background,
+                setup_camera,
+                setup_player,
+                init_timer,
+                spawn_stats,
+            ),
         )
         .add_systems(
             Update,
@@ -85,6 +96,7 @@ fn main() {
                 manage_asteroids,
                 shoot,
                 collision_system,
+                update_stats,
             ),
         )
         .run();
@@ -119,6 +131,6 @@ fn fit_canvas(
 
 fn get_high_res_size(window: &Window) -> f32 {
     let h_scale = window.width() / RES_WIDTH as f32;
-    let v_scale = window.height() / RES_HEIGHT  as f32;
+    let v_scale = window.height() / RES_HEIGHT as f32;
     h_scale.min(v_scale).round()
 }

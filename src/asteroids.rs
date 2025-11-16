@@ -2,7 +2,11 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
 
-use crate::{RES_HEIGHT, RES_WIDTH, collisions::{GROUP_ASTEROID, GROUP_PLAYER, GROUP_PROJECTILE}, get_high_res_size};
+use crate::{
+    RES_HEIGHT, RES_WIDTH,
+    collisions::{GROUP_ASTEROID, GROUP_PLAYER, GROUP_PROJECTILE},
+    get_high_res_size,
+};
 
 #[derive(Component)]
 pub struct SpawnTimer {
@@ -10,7 +14,10 @@ pub struct SpawnTimer {
 }
 
 #[derive(Component)]
-pub struct Asteroid;
+pub struct Asteroid {
+    pub score: u32,
+    pub scale: f32,
+}
 
 pub fn init_timer(mut commands: Commands) {
     commands.spawn(SpawnTimer {
@@ -25,7 +32,7 @@ pub fn manage_asteroids(
     time: Res<Time>,
     transform: Query<&Transform, With<Asteroid>>,
     entity: Query<Entity, With<Asteroid>>,
-    window: Single<&Window>
+    window: Single<&Window>,
 ) {
     // despawn logic
     for (trans, ent) in transform.iter().zip(entity.iter()) {
@@ -66,11 +73,17 @@ pub fn manage_asteroids(
     let linvel_y = rng.random_range(-15..15);
     let angvel = rng.random_range(-2..2);
 
+    let score: u32 = {
+        let m = (2.0_f32 - 4.0_f32) / (0.6_f32 - 0.3_f32);
+        let b = 4.0_f32 - m * 0.3_f32;
+        (m * scale + b).floor() as u32
+    };
+
+    // TODO: don't spawn near the player, limit spawning
     // spawningggg
     commands.spawn((
         Sprite::from_image(asset_server.load("asteroids/1.png")),
-        Transform::from_xyz(pos_x as f32, pos_y as f32, 0.0)
-            .with_scale(Vec3::splat(scale / 40.0)),
+        Transform::from_xyz(pos_x as f32, pos_y as f32, 0.0).with_scale(Vec3::splat(scale / 40.0)),
         Velocity {
             linvel: Vec2 {
                 x: linvel_x as f32,
@@ -88,7 +101,7 @@ pub fn manage_asteroids(
         Collider::ball(500.0 * scale * get_high_res_size(&window)),
         ActiveEvents::COLLISION_EVENTS,
         Ccd::enabled(),
-        Asteroid,
+        Asteroid { scale, score },
         CollisionGroups::new(
             Group::from_bits_truncate(GROUP_ASTEROID),
             Group::from_bits_truncate(GROUP_PLAYER | GROUP_PROJECTILE | GROUP_ASTEROID),

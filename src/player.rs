@@ -1,12 +1,20 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{RES_HEIGHT, RES_WIDTH, collisions::{GROUP_ASTEROID, GROUP_PLAYER, GROUP_PROJECTILE}, get_high_res_size};
+use crate::{
+    RES_HEIGHT, RES_WIDTH,
+    collisions::{GROUP_ASTEROID, GROUP_PLAYER, GROUP_PROJECTILE},
+    get_high_res_size,
+};
 
 #[derive(Component)]
 pub struct Player;
 
-pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, window: Single<&Window>) {
+pub fn setup_player(
+    mut commands: Commands,
+    asset_server: Res<AssetServer>,
+    window: Single<&Window>,
+) {
     commands.spawn((
         Sprite::from_image(asset_server.load("ship.png")),
         Transform::from_xyz(0.0, 0.0, 0.0).with_scale(Vec3::splat(1.0 / 40.0)),
@@ -23,8 +31,8 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, wind
         Ccd::enabled(),
         CollisionGroups::new(
             Group::from_bits_truncate(GROUP_PLAYER),
-            Group::from_bits_truncate(GROUP_ASTEROID | GROUP_PROJECTILE)
-        )
+            Group::from_bits_truncate(GROUP_ASTEROID | GROUP_PROJECTILE),
+        ),
     ));
 }
 
