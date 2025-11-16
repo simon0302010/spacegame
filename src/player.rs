@@ -29,7 +29,7 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, wind
 }
 
 const TURN_SPEED: f32 = 0.5;
-const MAX_TURN_SPEED: f32 = 5.0;
+const MAX_TURN_SPEED: f32 = 3.0;
 const THRUST: f32 = 600.0;
 
 /// Controls player

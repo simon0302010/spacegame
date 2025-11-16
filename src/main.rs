@@ -62,6 +62,9 @@ fn main() {
                 ..default()
             },
         })
+        .insert_resource(ProjectilesData {
+            last_shoot: 0.0
+        })
         .add_plugins(RapierDebugRenderPlugin {
             default_collider_debug: ColliderDebug::AlwaysRender,
             enabled: true,

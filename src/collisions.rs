@@ -8,6 +8,7 @@ pub const GROUP_PROJECTILE: u32 = 0b0010;
 pub const GROUP_ASTEROID: u32 = 0b0100;
 
 pub fn collision_system(
+    mut commands: Commands,
     mut collision_events: EventReader<CollisionEvent>,
     q_player: Query<Entity, With<Player>>,
     q_projectile: Query<Entity, With<Projectile>>,
@@ -25,6 +26,9 @@ pub fn collision_system(
             let is_asteroid2 = q_asteroid.get(*entity2).is_ok();
 
             if (is_projectile1 && is_asteroid2) || (is_projectile2 && is_asteroid1) {
+                // animation
+                commands.entity(*entity1).despawn();
+                commands.entity(*entity2).despawn();
                 info!("Projectile hit asteroid!");
             }
 

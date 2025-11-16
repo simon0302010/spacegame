@@ -8,17 +8,27 @@ pub struct Projectile {
     initial_velocity: Vec2
 }
 
-const SHOOT_STRENGTH: f32 = 200.0;
+#[derive(Resource)]
+pub struct ProjectilesData {
+    pub last_shoot: f32
+}
 
+const SHOOT_STRENGTH: f32 = 200.0;
+const MAX_SHOOT_DELTA_S: f32 = 0.3;
+
+// TODO: sound
 pub fn shoot(
     mut commands: Commands,
     asset_server: Res<AssetServer>,
     kb_input: Res<ButtonInput<KeyCode>>,
     player_transform: Query<(&Transform, &Velocity), With<Player>>,
-    window: Single<&Window>
+    window: Single<&Window>,
+    mut proj_data: ResMut<ProjectilesData>,
+    time: Res<Time>
 ) {
     if kb_input.just_pressed(KeyCode::Space)
         && let Ok((trans, vel)) = player_transform.single()
+        && time.elapsed_secs() - proj_data.last_shoot > MAX_SHOOT_DELTA_S
     {
         let rotated: Vec3 =
             (trans.rotation * Quat::from_rotation_z(std::f32::consts::FRAC_PI_2)) * Vec3::X;
@@ -41,6 +51,8 @@ pub fn shoot(
                 Group::from_bits_truncate(GROUP_ASTEROID)
             )
         ));
+
+        proj_data.last_shoot = time.elapsed_secs();
     }
 }
 
@@ -65,6 +77,7 @@ pub fn manage_projectiles(
         }
     }
 
+    // TODO: animation for despawn
     for ((vel, proj), ent) in velocity_query.iter().zip(entity.iter()) {
         if proj.initial_velocity.x.abs() * 0.8 > vel.linvel.x.abs()
             || proj.initial_velocity.y.abs() * 0.8 > vel.linvel.y.abs()
