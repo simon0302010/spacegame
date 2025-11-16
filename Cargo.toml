@@ -2,6 +2,10 @@
 name = "spacegame"
 version = "0.1.0"
 edition = "2024"
+description = "A bad 2D game."
+repository = "https://github.com/simon0302010/spacegame"
+readme = "README.md"
+license = "GPL-3.0-only"
 
 [dependencies]
 bevy = { version = "0.16.*", features = [ "bevy_dev_tools", "mp3" ]}
