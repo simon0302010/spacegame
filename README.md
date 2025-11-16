@@ -2,6 +2,12 @@
 
 A pretty bad 2D space game where you shoot at asteroids.
 
+## Demo
+
+This demo video sucks:
+
+https://github.com/user-attachments/assets/2f032e5f-a7ef-4905-8610-8918dd0efe90
+
 ## Installation
 
 You can download the game from crates.io:
