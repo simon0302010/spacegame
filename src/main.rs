@@ -73,7 +73,7 @@ fn main() {
         })
         .add_plugins(RapierDebugRenderPlugin {
             default_collider_debug: ColliderDebug::AlwaysRender,
-            enabled: true,
+            enabled: false,
             mode: DebugRenderMode::all(),
             ..default()
         })

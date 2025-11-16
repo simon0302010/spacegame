@@ -5,7 +5,7 @@ use rand::Rng;
 use crate::{
     RES_HEIGHT, RES_WIDTH,
     collisions::{GROUP_ASTEROID, GROUP_PLAYER, GROUP_PROJECTILE},
-    get_high_res_size,
+    // get_high_res_size,
 };
 
 #[derive(Component)]
@@ -32,7 +32,7 @@ pub fn manage_asteroids(
     time: Res<Time>,
     transform: Query<&Transform, With<Asteroid>>,
     entity: Query<Entity, With<Asteroid>>,
-    window: Single<&Window>,
+    // window: Single<&Window>,
 ) {
     // despawn logic
     for (trans, ent) in transform.iter().zip(entity.iter()) {
@@ -98,8 +98,8 @@ pub fn manage_asteroids(
         },
         Sleeping::disabled(),
         RigidBody::Dynamic,
-        Collider::ball(500.0 * scale * get_high_res_size(&window)),
-        // Collider::ball(0.5 * scale),
+        // Collider::ball(500.0 * scale * get_high_res_size(&window)),
+        Collider::ball(500.0 * scale * 3.0),
         ActiveEvents::COLLISION_EVENTS,
         Ccd::enabled(),
         Asteroid { scale, score },

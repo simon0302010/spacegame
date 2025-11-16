@@ -4,7 +4,7 @@ use bevy::{
     prelude::*,
 };
 
-use crate::{asteroids::Asteroid, collisions::Stats};
+use crate::collisions::Stats;
 
 const WHITE_COLOR: Color = Color::srgb(1.0, 1.0, 1.0);
 
