@@ -22,6 +22,9 @@ use asteroids::*;
 mod collisions;
 use collisions::*;
 
+mod shooting;
+use shooting::*;
+
 /// In-game resolution width.
 const RES_WIDTH: u32 = 320;
 

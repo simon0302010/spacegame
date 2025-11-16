@@ -2,7 +2,7 @@ use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 use rand::Rng;
 
-use crate::{RES_HEIGHT, RES_WIDTH, get_high_res_size};
+use crate::{RES_HEIGHT, RES_WIDTH, collisions::{GROUP_ASTEROID, GROUP_PLAYER, GROUP_PROJECTILE}, get_high_res_size};
 
 #[derive(Component)]
 pub struct SpawnTimer {
@@ -85,10 +85,13 @@ pub fn manage_asteroids(
         },
         Sleeping::disabled(),
         RigidBody::Dynamic,
-        // Collider::ball(20.0 * scale * get_high_res_size(&window)),
-        Collider::ball(20.0 * scale / 40.0),
+        Collider::ball(500.0 * scale * get_high_res_size(&window)),
         ActiveEvents::COLLISION_EVENTS,
         Ccd::enabled(),
         Asteroid,
+        CollisionGroups::new(
+            Group::from_bits_truncate(GROUP_ASTEROID),
+            Group::from_bits_truncate(GROUP_PLAYER | GROUP_PROJECTILE | GROUP_ASTEROID),
+        ),
     ));
 }

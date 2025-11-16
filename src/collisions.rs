@@ -1,7 +1,11 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{asteroids::Asteroid, player::Player, player::Projectile};
+use crate::{asteroids::Asteroid, player::Player, shooting::Projectile};
+
+pub const GROUP_PLAYER: u32 = 0b0001;
+pub const GROUP_PROJECTILE: u32 = 0b0010;
+pub const GROUP_ASTEROID: u32 = 0b0100;
 
 pub fn collision_system(
     mut collision_events: EventReader<CollisionEvent>,

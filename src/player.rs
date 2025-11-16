@@ -1,13 +1,10 @@
 use bevy::prelude::*;
 use bevy_rapier2d::prelude::*;
 
-use crate::{RES_HEIGHT, RES_WIDTH, get_high_res_size};
+use crate::{RES_HEIGHT, RES_WIDTH, collisions::{GROUP_ASTEROID, GROUP_PLAYER, GROUP_PROJECTILE}, get_high_res_size};
 
 #[derive(Component)]
 pub struct Player;
-
-#[derive(Component)]
-pub struct Projectile;
 
 pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, window: Single<&Window>) {
     commands.spawn((
@@ -20,10 +17,14 @@ pub fn setup_player(mut commands: Commands, asset_server: Res<AssetServer>, wind
             linear_damping: 2.0,
             angular_damping: 3.0,
         },
-        Collider::ball(9.0 * 10.0),//40.0),
+        Collider::ball(9.0 * 10.0 * get_high_res_size(&window)),
         Player,
         ActiveEvents::COLLISION_EVENTS,
         Ccd::enabled(),
+        CollisionGroups::new(
+            Group::from_bits_truncate(GROUP_PLAYER),
+            Group::from_bits_truncate(GROUP_ASTEROID | GROUP_PROJECTILE)
+        )
     ));
 }
 
@@ -69,57 +70,5 @@ pub fn keep_player(mut transform: Query<&mut Transform, With<Player>>) {
         if trans.translation.y < -((RES_HEIGHT as f32) / 2.0) {
             trans.translation.y = (RES_HEIGHT / 2) as f32;
         }
-    }
-}
-
-pub fn manage_projectiles(
-    mut commands: Commands,
-    transform: Query<&Transform, With<Projectile>>,
-    entity: Query<Entity, With<Projectile>>,
-) {
-    for (trans, ent) in transform.iter().zip(entity.iter()) {
-        if trans.translation.x > (RES_WIDTH / 2) as f32 {
-            commands.entity(ent).despawn();
-        }
-        if trans.translation.x < -((RES_WIDTH as f32) / 2.0) {
-            commands.entity(ent).despawn();
-        }
-        if trans.translation.y > (RES_HEIGHT / 2) as f32 {
-            commands.entity(ent).despawn();
-        }
-        if trans.translation.y < -((RES_HEIGHT as f32) / 2.0) {
-            commands.entity(ent).despawn();
-        }
-    }
-}
-
-const SHOOT_STRENGTH: f32 = 200.0;
-
-pub fn shoot(
-    mut commands: Commands,
-    asset_server: Res<AssetServer>,
-    kb_input: Res<ButtonInput<KeyCode>>,
-    player_transform: Query<(&Transform, &Velocity), With<Player>>,
-    window: Single<&Window>
-) {
-    if kb_input.just_pressed(KeyCode::Space)
-        && let Ok((trans, vel)) = player_transform.single()
-    {
-        let rotated: Vec3 =
-            (trans.rotation * Quat::from_rotation_z(std::f32::consts::FRAC_PI_2)) * Vec3::X;
-        commands.spawn((
-            Sprite::from_image(asset_server.load("proj.png")),
-            Transform::from_xyz(trans.translation.x, trans.translation.y, 0.0)
-                .with_rotation(trans.rotation)
-                .with_scale(Vec3::splat(1.0 / 5.0)),
-            RigidBody::Dynamic,
-            Velocity::linear(Vec2::new(rotated.x, rotated.y) * SHOOT_STRENGTH + vel.linvel),
-            Sleeping::disabled(),
-            Projectile,
-            GravityScale(0.0),
-            Collider::ball(2.0 / get_high_res_size(&window)),
-            ActiveEvents::COLLISION_EVENTS,
-            Ccd::enabled(),
-        ));
     }
 }
